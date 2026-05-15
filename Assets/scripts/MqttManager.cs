@@ -39,11 +39,17 @@ public class MqttManager : MonoBehaviour
     [Serializable]
     public class ObjectTransformData
     {
-        public string targetName;
+        public string id;         // Nouveau nom recommandé
+        public string targetName; // Fallback pour la compatibilité
         public Vector3 position;
         public Vector3 rotation; // Absolute rotation
         public Vector3 scale;    // Zoom/Scale (default 0,0,0 if omitted)
         public Vector3 rotationSpeed; // Continuous rotation speed (degrees/sec)
+        
+        // --- Pendule Physics ---
+        public float ang_init = -999f;
+        public float alpha = -999f;
+        public float m = -999f;
     }
 
     void Start()
@@ -220,14 +226,19 @@ public class MqttManager : MonoBehaviour
 
     void ProcessMessage(string json)
     {
+        // Debug.Log($"[Diagnostic] JSON brut reçu : {json}");
         try
         {
             // Parse JSON into data object
             ObjectTransformData data = JsonUtility.FromJson<ObjectTransformData>(json);
+            
+            // Debug.Log($"[Diagnostic] Parsé -> id: '{data.id}', targetName: '{data.targetName}'");
 
-            if (data != null && !string.IsNullOrEmpty(data.targetName))
+            string finalTarget = !string.IsNullOrEmpty(data.id) ? data.id : data.targetName;
+            
+            if (data != null && !string.IsNullOrEmpty(finalTarget))
             {
-                GameObject target = GameObject.Find(data.targetName);
+                GameObject target = GameObject.Find(finalTarget);
 
                 if (target != null)
                 {
@@ -289,14 +300,20 @@ public class MqttManager : MonoBehaviour
                         }
                     }
 
+                    // --- PENDULUM RESET ---
+                    if (json.Contains("\"ang_init\"") || json.Contains("\"alpha\"") || json.Contains("\"m\""))
+                    {
+                        target.BroadcastMessage("OnMqttReset", data, SendMessageOptions.DontRequireReceiver);
+                    }
+
                     // Physics WakeUp ensures changes are registered immediately
                     if (hasRb && !rb.isKinematic) rb.WakeUp();
 
-                    Debug.Log($"MQTT Update '{data.targetName}': Pos={(json.Contains("\"position\"") ? "Set" : "Skip")}");
+                    Debug.Log($"MQTT Update '{finalTarget}': Pos={(json.Contains("\"position\"") ? "Set" : "Skip")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"Target object '{data.targetName}' not found in scene.");
+                    Debug.LogWarning($"Target object '{finalTarget}' not found in scene.");
                 }
             }
         }
