@@ -15,6 +15,7 @@ public class MqttManager : MonoBehaviour
     public int mqttPort = 1883;
     public bool useEncrypted = false; // Set to true if using SSL (usually port 8883)
     public string mqttTopic = "FABLAB_21_22/Unity/metaquest/in";
+    public string mqttTopicCouples = "FABLAB_21_22/Unity/meta/pend_coupl/in/"; // NOUVEAU TOPIC
     public string mqttTopicOut = "FABLAB_21_22/Unity/metaquest/out";
     
     [Header("Credentials")]
@@ -50,6 +51,15 @@ public class MqttManager : MonoBehaviour
         public float ang_init = -999f;
         public float alpha = -999f;
         public float m = -999f;
+
+        // --- Pendules Couples ---
+        public float ang_init1 = -999f;
+        public float ang_init2 = -999f;
+        public float alpha1 = -999f;
+        public float alpha2 = -999f;
+        public float Kc = -999f;
+        public float m1 = -999f;
+        public float m2 = -999f;
     }
 
     void Start()
@@ -122,12 +132,22 @@ public class MqttManager : MonoBehaviour
                 client.MqttMsgPublishReceived += Client_MqttMsgPublishReceived;
                 client.ConnectionClosed += Client_ConnectionClosed;
                 
-                // Subscribe to Main JSON Topic
+                // Subscribe to Main JSON Topic AND Couples Topic
                 List<string> topics = new List<string>();
                 List<byte> qos = new List<byte>();
 
-                topics.Add(mqttTopic);
-                qos.Add(MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE);
+                // Helper pour s'abonner avec et sans slash
+                Action<string> addTopic = (t) => {
+                    if (string.IsNullOrEmpty(t)) return;
+                    string clean = t.TrimEnd('/');
+                    topics.Add(clean);
+                    qos.Add(MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE);
+                    topics.Add(clean + "/");
+                    qos.Add(MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE);
+                };
+
+                addTopic(mqttTopic);
+                addTopic(mqttTopicCouples);
 
                 client.Subscribe(topics.ToArray(), qos.ToArray());
 
@@ -148,12 +168,17 @@ public class MqttManager : MonoBehaviour
     }
 
     private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
-        {
+    {
         string msg = Encoding.UTF8.GetString(e.Message);
         string topic = e.Topic;
 
+        // On enlève les slashs à la fin pour éviter les erreurs bêtes
+        string cleanTopic = topic.TrimEnd('/');
+        string cleanMqttTopic = mqttTopic.TrimEnd('/');
+        string cleanMqttTopicCouples = mqttTopicCouples != null ? mqttTopicCouples.TrimEnd('/') : "";
+
         // Dispatch based on topic
-        if (topic == mqttTopic)
+        if (cleanTopic == cleanMqttTopic || cleanTopic == cleanMqttTopicCouples)
         {
             // Main JSON Channel
             messageQueue.Enqueue(msg);
@@ -226,13 +251,13 @@ public class MqttManager : MonoBehaviour
 
     void ProcessMessage(string json)
     {
-        // Debug.Log($"[Diagnostic] JSON brut reçu : {json}");
+        Debug.Log($"[Diagnostic] JSON brut reçu : {json}");
         try
         {
             // Parse JSON into data object
             ObjectTransformData data = JsonUtility.FromJson<ObjectTransformData>(json);
             
-            // Debug.Log($"[Diagnostic] Parsé -> id: '{data.id}', targetName: '{data.targetName}'");
+            Debug.Log($"[Diagnostic] Parsé -> id: '{data.id}', targetName: '{data.targetName}'");
 
             string finalTarget = !string.IsNullOrEmpty(data.id) ? data.id : data.targetName;
             
@@ -304,6 +329,13 @@ public class MqttManager : MonoBehaviour
                     if (json.Contains("\"ang_init\"") || json.Contains("\"alpha\"") || json.Contains("\"m\""))
                     {
                         target.BroadcastMessage("OnMqttReset", data, SendMessageOptions.DontRequireReceiver);
+                    }
+
+                    // --- PENDULES COUPLES RESET ---
+                    if (json.Contains("\"ang_init1\"") || json.Contains("\"ang_init2\"") || json.Contains("\"Kc\"") || json.Contains("\"alpha1\"") || json.Contains("\"alpha2\"") || json.Contains("\"m1\"") || json.Contains("\"m2\""))
+                    {
+                        Debug.Log($"[Diagnostic] Condition PENDULES COUPLES validée. Envoi de 'OnMqttResetCouples' à l'objet '{target.name}'");
+                        target.BroadcastMessage("OnMqttResetCouples", data, SendMessageOptions.DontRequireReceiver);
                     }
 
                     // Physics WakeUp ensures changes are registered immediately

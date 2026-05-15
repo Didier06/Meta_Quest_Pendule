@@ -112,7 +112,54 @@ Credentials for the MQTT connection are secure and **not committed** to Git. The
 
 ---
 
-## 5. Overview
+## 5. Coupled Pendulums (Pendules Couplés)
 
-![Meta Quest Pendule](Assets/images/meta_pendule.png)
+In addition to the simple pendulum, this project now includes a **Coupled Pendulum** simulation. Two independent pendulums are connected by a virtual torsional spring, allowing the study of energy transfer, beats (battements), and normal modes (in-phase and anti-phase oscillations).
+
+### A. Remote Control (Topic IN)
+The coupled pendulums use a separate listening topic to avoid interference with the simple pendulum.
+
+- **Listen Topic:** `FABLAB_21_22/Unity/meta/pend_coupl/in/`
+- **Example Command JSON:**
+```json
+{
+  "id": "pendules_couples",
+  "ang_init1": 40.0,
+  "ang_init2": -40.0,
+  "alpha1": 0.5,
+  "alpha2": 0.5,
+  "Kc": 5.0,
+  "m1": 1.0,
+  "m2": 1.0
+}
+```
+- `ang_init1` / `ang_init2`: Starting angles for Pendulum 1 and 2. 
+  - *Tip: Set them to the same value (e.g., 40, 40) for an in-phase normal mode. Set them to opposite values (e.g., 40, -40) for an anti-phase normal mode.*
+- `alpha1` / `alpha2`: Viscous friction applied to the respective Hinge Joints.
+- `Kc`: The stiffness constant of the virtual coupling spring. A higher value means faster energy transfer between the two pendulums.
+- `m1` / `m2`: (Optional) Masses of the individual pendulums.
+
+### B. Telemetry (Topic OUT)
+The coupled system publishes the state of **both** pendulums simultaneously to guarantee perfectly synchronized data for external graphing (e.g., in Node-RED).
+
+- **Publish Topic:** `FABLAB_21_22/Unity/meta/pendule/out/` (shared with the simple pendulum)
+- **Example Output JSON:**
+```json
+{
+  "id": "pendules_couples",
+  "ang1": 25.4,
+  "ang2": -12.1,
+  "temps": 4.5
+}
+```
+
+### C. Physics Engine Optimizations
+To perfectly simulate the coupled normal modes without phase drift over long periods, the script (`PendulesCouples.cs`) implements strict physics optimizations:
+- Absolute geometric angle detection (`ObtenirAngleAbsolu`), making it immune to 3D prefab orientation flips.
+- Automated `Physics.IgnoreCollision` between the pendulums to prevent microscopic friction.
+- Elevated `solverIterations` to maintain integration accuracy for the torsional spring forces.
+
+---
+
+## 6. Overview
 
