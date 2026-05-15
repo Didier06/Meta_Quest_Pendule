@@ -51,14 +51,10 @@ public class PendulumMqttPublisher : MonoBehaviour
     {
         if (mqttManager != null)
         {
-            // Récupérer l'angle sur l'axe X
-            float angle = transform.localEulerAngles.x;
-
-            // Corriger l'angle pour qu'il aille de -180 à 180 (au lieu de 0 à 360)
-            if (angle > 180f)
-            {
-                angle -= 360f;
-            }
+            // Calcul robuste de l'angle X sans l'inversion d'axes d'Unity (Gimbal Lock au-delà de 90°)
+            // Au lieu de lire localEulerAngles.x qui "rebondit" à 90°, on projette le vecteur "Haut" local.
+            Vector3 localUp = transform.localRotation * Vector3.up;
+            float angle = Mathf.Atan2(localUp.z, localUp.y) * Mathf.Rad2Deg;
 
             // Le nom du pendule est récupéré depuis l'objet parent principal (ex: pendule_simple)
             string nomPendule = transform.root.name;

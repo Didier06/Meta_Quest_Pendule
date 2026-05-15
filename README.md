@@ -109,3 +109,10 @@ Credentials for the MQTT connection are secure and **not committed** to Git. The
   "mqttPassword": ""
 }
 ```
+
+---
+
+## 5. Overview
+
+![Meta Quest Pendule](Assets/images/meta_pendule.png)
+
