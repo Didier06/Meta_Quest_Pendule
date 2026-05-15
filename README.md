@@ -163,3 +163,5 @@ To perfectly simulate the coupled normal modes without phase drift over long per
 
 ## 6. Overview
 
+![Meta Quest Pendule](Assets/images/meta_pendule.png)
+
