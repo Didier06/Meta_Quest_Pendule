@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Fablab_UniCA
-  productName: Meta_Quest_Neurone
+  productName: Meta_Quest_Pendule
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -143,7 +143,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1.0
+  bundleVersion: 0.1.1
   preloadedAssets:
   - {fileID: 11400000, guid: d31579fe5440fc544bdd3cde87f705b9, type: 2}
   metroInputSource: 0
@@ -937,11 +937,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: 8b9183f8-c98d-410b-95ef-66e4e3faf9e3
+  cloudProjectId: a1561c5b-4c03-43ad-ab60-1f24f7e17595
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Meta_Quest_Test
-  organizationId: dorlandi
+  projectName: Pendule_simple
+  organizationId: unity_b7dd19fc03ccd4759add
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
