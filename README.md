@@ -161,7 +161,17 @@ To perfectly simulate the coupled normal modes without phase drift over long per
 
 ---
 
-## 6. Overview
+## 6. Web Dashboard
+
+This project includes a modern, scientific web-based dashboard located in the `site-web/` directory. The dashboard allows users to visualize real-time pendulum telemetry (both simple and coupled) and send configuration commands directly via MQTT. 
+
+Features include:
+- Secure connection to the MQTT broker over WebSockets.
+- Real-time data plotting using `Chart.js` for precise monitoring of angles, energy transfer, and normal modes.
+- A responsive, dark-themed user interface designed for streamlined experimental control.
+
+---
+
+## 7. Overview
 
 ![Meta Quest Pendule](Assets/images/meta_pendule.png)
-

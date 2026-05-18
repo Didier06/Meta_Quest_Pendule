@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratoire Virtuel : Pendules</title>
+    <meta name="description" content="Interface scientifique de contrôle et de visualisation pour pendules simples et couplés via MQTT.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Laboratoire de Physique</h1>
+            <p>Analyse et Contrôle de Systèmes Oscillants via MQTT</p>
+            
+            <div class="mqtt-status-global">
+                <span class="status-badge">
+                    <span class="status-indicator" id="global-status-indicator"></span>
+                    <span id="global-status-text">Déconnecté</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="tab-simple">Pendule Simple</button>
+        <button class="tab-btn" data-tab="tab-couple">Pendule Couplé</button>
+        <button class="tab-btn" data-tab="tab-mqtt">Configuration MQTT</button>
+    </nav>
+
+    <main>
+        <!-- Onglet : Pendule Simple -->
+        <section id="tab-simple" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h2 class="panel-header">Visualisation en Temps Réel</h2>
+                    <div class="chart-container">
+                        <canvas id="chart-simple"></canvas>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-header">Paramètres d'Initialisation</h2>
+                    <form id="form-simple" class="control-form">
+                        <div class="form-group">
+                            <label for="simple-angle">Angle Initial &theta;<sub>0</sub> (degrés)</label>
+                            <input type="number" id="simple-angle" step="0.1" value="45" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="simple-vitesse">Vitesse Angulaire Initiale &omega;<sub>0</sub> (deg/s)</label>
+                            <input type="number" id="simple-vitesse" step="0.1" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="simple-frottement">Coefficient de Frottement (N.m.s)</label>
+                            <input type="number" id="simple-frottement" step="0.001" value="0.05" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="simple-masse">Masse (kg)</label>
+                            <input type="number" id="simple-masse" step="0.1" value="1.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="simple-longueur">Longueur (m)</label>
+                            <input type="number" id="simple-longueur" step="0.1" value="1.0" required>
+                        </div>
+                        <button type="submit" class="btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            Envoyer la configuration
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Onglet : Pendule Couplé -->
+        <section id="tab-couple" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h2 class="panel-header">Visualisation en Temps Réel</h2>
+                    <div class="chart-container">
+                        <canvas id="chart-couple"></canvas>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-header">Paramètres d'Initialisation</h2>
+                    <form id="form-couple" class="control-form">
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="couple-angle1">&theta;<sub>1</sub> Initial (deg)</label>
+                                <input type="number" id="couple-angle1" step="0.1" value="30" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="couple-angle2">&theta;<sub>2</sub> Initial (deg)</label>
+                                <input type="number" id="couple-angle2" step="0.1" value="0" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="couple-frottement">Frottement Visqueux</label>
+                            <input type="number" id="couple-frottement" step="0.001" value="0.02" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="couple-k">Raideur du Ressort de Couplage (k)</label>
+                            <input type="number" id="couple-k" step="0.1" value="5.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="couple-distance">Distance du Couplage (m)</label>
+                            <input type="number" id="couple-distance" step="0.1" value="0.5" required>
+                        </div>
+                        <button type="submit" class="btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            Envoyer la configuration
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Onglet : MQTT -->
+        <section id="tab-mqtt" class="tab-content">
+            <div class="panel mqtt-settings">
+                <h2 class="panel-header">Connexion au Serveur MQTT</h2>
+                <div class="form-group">
+                    <label for="mqtt-host">Hôte (WebSocket)</label>
+                    <input type="text" id="mqtt-host" value="mqtt.univ-cotedazur.fr" placeholder="ex: 192.168.1.100 ou broker.hivemq.com">
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="mqtt-port">Port (WebSocket)</label>
+                        <input type="number" id="mqtt-port" value="443" placeholder="443">
+                    </div>
+                    <div class="form-group half">
+                        <label for="mqtt-client-id">Client ID</label>
+                        <input type="text" id="mqtt-client-id" value="lab_client_123">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="mqtt-user">Utilisateur</label>
+                        <input type="text" id="mqtt-user" value="fablab2122" placeholder="Username">
+                    </div>
+                    <div class="form-group half">
+                        <label for="mqtt-pass">Mot de passe</label>
+                        <input type="password" id="mqtt-pass" placeholder="Password">
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="mqtt-connect-btn" class="btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                        Se connecter
+                    </button>
+                    <button id="mqtt-disconnect-btn" class="btn danger" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                        Se déconnecter
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel mqtt-log" style="margin-top: 2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                <h2 class="panel-header">Console de Debug MQTT</h2>
+                <div class="log-container" id="mqtt-log-container">
+                    <div class="log-entry system">En attente de connexion...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

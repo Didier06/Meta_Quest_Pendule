@@ -582,8 +582,9 @@ MonoBehaviour:
   mqttBroker: mqtt.univ-cotedazur.fr
   mqttPort: 8443
   useEncrypted: 1
-  mqttTopic: FABLAB_21_22/Unity/meta/pendule/in
-  mqttTopicOut: FABLAB_21_22/Unity/meta/pendule/out
+  mqttTopic: FABLAB_21_22/Unity/meta/pendule/in/
+  mqttTopicCouples: FABLAB_21_22/Unity/meta/pend_coupl/in/
+  mqttTopicOut: FABLAB_21_22/Unity/meta/pendule/out/
   username: 
   password: 
   processMessages: 1
@@ -2242,6 +2243,7 @@ MonoBehaviour:
   messagesParSeconde: 5
   afficherDansConsole: 0
   pivotJoint: {fileID: 4680645511584164626}
+  dureeRemontee: 3
 --- !u!1 &8560504402977037782
 GameObject:
   m_ObjectHideFlags: 0
