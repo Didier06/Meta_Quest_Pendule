@@ -456,4 +456,44 @@ document.addEventListener('DOMContentLoaded', () => {
         chartCouple.update();
         startTimeCouple = null; // Reset relative time
     });
+
+    // --- CSV Export Logic ---
+    document.getElementById('export-simple').addEventListener('click', () => {
+        let csvContent = "Temps (s),Angle (deg)\n";
+        chartSimple.data.datasets[0].data.forEach(p => {
+            csvContent += `${p.x},${p.y}\n`;
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "pendule_simple_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    document.getElementById('export-couple').addEventListener('click', () => {
+        let csvContent = "Temps (s),Angle 1 (deg),Angle 2 (deg)\n";
+        const data1 = chartCouple.data.datasets[0].data;
+        const data2 = chartCouple.data.datasets[1].data;
+        
+        // Use the length of data1, assuming they are synchronized
+        for(let i=0; i<data1.length; i++){
+            let x = data1[i].x;
+            let y1 = data1[i].y;
+            let y2 = data2[i] ? data2[i].y : "";
+            csvContent += `${x},${y1},${y2}\n`;
+        }
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "pendules_couples_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
 });

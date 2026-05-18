@@ -44,7 +44,13 @@
         <section id="tab-simple" class="tab-content active">
             <div class="dashboard-grid">
                 <div class="panel">
-                    <h2 class="panel-header">Visualisation en Temps Réel</h2>
+                    <h2 class="panel-header" style="justify-content: space-between;">
+                        <span>Visualisation en Temps Réel</span>
+                        <button id="export-simple" class="btn" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem; margin-top: 0;" title="Télécharger en CSV">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            CSV
+                        </button>
+                    </h2>
                     <div class="visualisation-wrapper">
                         <div class="chart-container">
                             <canvas id="chart-simple"></canvas>
@@ -88,7 +94,13 @@
         <section id="tab-couple" class="tab-content">
             <div class="dashboard-grid">
                 <div class="panel">
-                    <h2 class="panel-header">Visualisation en Temps Réel</h2>
+                    <h2 class="panel-header" style="justify-content: space-between;">
+                        <span>Visualisation en Temps Réel</span>
+                        <button id="export-couple" class="btn" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem; margin-top: 0;" title="Télécharger en CSV">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            CSV
+                        </button>
+                    </h2>
                     <div class="chart-container">
                         <canvas id="chart-couple"></canvas>
                     </div>
