@@ -22,7 +22,7 @@ The project integrates an **MQTT Manager** (`MqttManager.cs`) coupled with a scr
 ### A. Listening / Remote Control (Topic IN)
 The pendulum listens to JSON messages to reset itself or modify its physical properties on the fly.
 
-- **Listen Topic:** `FABLAB_21_22/Unity/metaquest/in` *(configurable in MqttManager)*
+- **Listen Topic:** `FABLAB_21_22/Unity/meta/pendule/in/` *(configurable in MqttManager)*
 - **Example Command JSON:**
 ```json
 {
@@ -142,7 +142,7 @@ The coupled pendulums use a separate listening topic to avoid interference with 
 ### B. Telemetry (Topic OUT)
 The coupled system publishes the state of **both** pendulums simultaneously to guarantee perfectly synchronized data for external graphing (e.g., in Node-RED).
 
-- **Publish Topic:** `FABLAB_21_22/Unity/meta/pendule/out/` (shared with the simple pendulum)
+- **Publish Topic:** `FABLAB_21_22/Unity/meta/pend_coupl/out/`
 - **Example Output JSON:**
 ```json
 {

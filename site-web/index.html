@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratoire Virtuel : Pendules</title>
+    <title>Simulation en Physique avec Unity</title>
     <meta name="description" content="Interface scientifique de contrôle et de visualisation pour pendules simples et couplés via MQTT.">
     
     <!-- Fonts -->
@@ -21,8 +21,8 @@
 <body>
     <header>
         <div class="header-content">
-            <h1>Laboratoire de Physique</h1>
-            <p>Analyse et Contrôle de Systèmes Oscillants via MQTT</p>
+            <h1>Simulation en Physique avec Unity</h1>
+            <p>Pendules simples et pendules couplés via MQTT</p>
             
             <div class="mqtt-status-global">
                 <span class="status-badge">
@@ -35,7 +35,7 @@
 
     <nav class="tabs">
         <button class="tab-btn active" data-tab="tab-simple">Pendule Simple</button>
-        <button class="tab-btn" data-tab="tab-couple">Pendule Couplé</button>
+        <button class="tab-btn" data-tab="tab-couple">Pendules Couplés</button>
         <button class="tab-btn" data-tab="tab-mqtt">Configuration MQTT</button>
     </nav>
 
@@ -45,8 +45,13 @@
             <div class="dashboard-grid">
                 <div class="panel">
                     <h2 class="panel-header">Visualisation en Temps Réel</h2>
-                    <div class="chart-container">
-                        <canvas id="chart-simple"></canvas>
+                    <div class="visualisation-wrapper">
+                        <div class="chart-container">
+                            <canvas id="chart-simple"></canvas>
+                        </div>
+                        <div class="pendulum-canvas-container">
+                            <canvas id="anim-simple" width="200" height="350"></canvas>
+                        </div>
                     </div>
                 </div>
                 
@@ -57,12 +62,9 @@
                             <label for="simple-angle">Angle Initial &theta;<sub>0</sub> (degrés)</label>
                             <input type="number" id="simple-angle" step="0.1" value="45" required>
                         </div>
+
                         <div class="form-group">
-                            <label for="simple-vitesse">Vitesse Angulaire Initiale &omega;<sub>0</sub> (deg/s)</label>
-                            <input type="number" id="simple-vitesse" step="0.1" value="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="simple-frottement">Coefficient de Frottement (N.m.s)</label>
+                            <label for="simple-frottement">Coefficient de Frottement &alpha; (N.m.s/rad)</label>
                             <input type="number" id="simple-frottement" step="0.001" value="0.05" required>
                         </div>
                         <div class="form-group">
@@ -105,17 +107,19 @@
                                 <input type="number" id="couple-angle2" step="0.1" value="0" required>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="couple-frottement">Frottement Visqueux</label>
-                            <input type="number" id="couple-frottement" step="0.001" value="0.02" required>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="couple-alpha1">Frottement &alpha;<sub>1</sub> (N.m.s/rad)</label>
+                                <input type="number" id="couple-alpha1" step="0.001" value="0.5" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="couple-alpha2">Frottement &alpha;<sub>2</sub> (N.m.s/rad)</label>
+                                <input type="number" id="couple-alpha2" step="0.001" value="0.5" required>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="couple-k">Raideur du Ressort de Couplage (k)</label>
+                            <label for="couple-k">Raideur de Couplage K<sub>c</sub> (N.m/rad)</label>
                             <input type="number" id="couple-k" step="0.1" value="5.0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="couple-distance">Distance du Couplage (m)</label>
-                            <input type="number" id="couple-distance" step="0.1" value="0.5" required>
                         </div>
                         <button type="submit" class="btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -134,16 +138,7 @@
                     <label for="mqtt-host">Hôte (WebSocket)</label>
                     <input type="text" id="mqtt-host" value="mqtt.univ-cotedazur.fr" placeholder="ex: 192.168.1.100 ou broker.hivemq.com">
                 </div>
-                <div class="form-row">
-                    <div class="form-group half">
-                        <label for="mqtt-port">Port (WebSocket)</label>
-                        <input type="number" id="mqtt-port" value="443" placeholder="443">
-                    </div>
-                    <div class="form-group half">
-                        <label for="mqtt-client-id">Client ID</label>
-                        <input type="text" id="mqtt-client-id" value="lab_client_123">
-                    </div>
-                </div>
+
                 <div class="form-row">
                     <div class="form-group half">
                         <label for="mqtt-user">Utilisateur</label>

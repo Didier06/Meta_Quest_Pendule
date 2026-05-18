@@ -17,8 +17,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Chart.js Configuration ---
-    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.color = '#475569';
     Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Custom plugin for vertical and horizontal crosshairs
+    const crosshairPlugin = {
+        id: 'crosshair',
+        afterDraw: chart => {
+            if (chart.tooltip?._active?.length) {
+                const x = chart.tooltip._active[0].element.x;
+                const yAxis = chart.scales.y;
+                const xAxis = chart.scales.x;
+                const ctx = chart.ctx;
+                
+                ctx.save();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.setLineDash([5, 5]);
+
+                // Ligne verticale (temps)
+                ctx.beginPath();
+                ctx.moveTo(x, yAxis.top);
+                ctx.lineTo(x, yAxis.bottom);
+                ctx.stroke();
+
+                // Lignes horizontales (angles) pour chaque point actif
+                chart.tooltip._active.forEach(activePoint => {
+                    const y = activePoint.element.y;
+                    ctx.beginPath();
+                    ctx.moveTo(xAxis.left, y);
+                    ctx.lineTo(xAxis.right, y);
+                    ctx.stroke();
+                });
+
+                ctx.restore();
+            }
+        }
+    };
 
     const commonChartOptions = {
         responsive: true,
@@ -40,31 +75,31 @@ document.addEventListener('DOMContentLoaded', () => {
         scales: {
             x: {
                 type: 'linear',
-                title: { display: true, text: 'Temps (s)', color: '#94a3b8' },
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                title: { display: true, text: 'Temps (s)', color: '#475569' },
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
                 ticks: {
                     maxTicksLimit: 10,
                     callback: function(value) { return value.toFixed(1); }
                 }
             },
             y: {
-                title: { display: true, text: 'Angle (degrés)', color: '#94a3b8' },
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                title: { display: true, text: 'Angle (degrés)', color: '#475569' },
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
                 suggestedMin: -90,
                 suggestedMax: 90
             }
         },
         plugins: {
             legend: {
-                labels: { color: '#e2e8f0', usePointStyle: true, boxWidth: 8 }
+                labels: { color: '#0f172a', usePointStyle: true, boxWidth: 8 }
             },
             tooltip: {
                 mode: 'index',
                 intersect: false,
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleColor: '#f8fafc',
-                bodyColor: '#e2e8f0',
-                borderColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#0f172a',
+                bodyColor: '#1e293b',
+                borderColor: 'rgba(0,0,0,0.1)',
                 borderWidth: 1
             }
         },
@@ -88,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 fill: true
             }]
         },
-        options: commonChartOptions
+        options: commonChartOptions,
+        plugins: [crosshairPlugin]
     });
 
     // Initialize Coupled Pendulum Chart
@@ -111,8 +147,77 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             ]
         },
-        options: commonChartOptions
+        options: commonChartOptions,
+        plugins: [crosshairPlugin]
     });
+
+    // --- 2D Pendulum Animation ---
+    const canvasSimple = document.getElementById('anim-simple');
+    const ctxAnim = canvasSimple.getContext('2d');
+
+    function drawPendulum(ctx, angleDeg, canvasWidth, canvasHeight) {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        
+        // Pivot point
+        const originX = canvasWidth / 2;
+        const originY = 50;
+        const length = 200; // Visual length
+        
+        // Calculate bob position
+        const angleRad = -angleDeg * Math.PI / 180; // Negative to match visual rotation usually
+        const bobX = originX + length * Math.sin(angleRad);
+        const bobY = originY + length * Math.cos(angleRad);
+        
+        // Draw axis/support
+        ctx.beginPath();
+        ctx.moveTo(originX - 20, originY);
+        ctx.lineTo(originX + 20, originY);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#475569';
+        ctx.stroke();
+
+        // Draw rod shadow
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(bobX, bobY);
+        ctx.lineWidth = 12;
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.4)'; // Orange outline like Unity
+        ctx.stroke();
+
+        // Draw rod core
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(bobX, bobY);
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#3b82f6'; // Blue core like Unity arrow
+        ctx.stroke();
+
+        // Draw bob (Mass) with marble texture simulation
+        ctx.beginPath();
+        ctx.arc(bobX, bobY, 35, 0, 2 * Math.PI);
+        const gradient = ctx.createRadialGradient(bobX - 10, bobY - 10, 5, bobX, bobY, 35);
+        gradient.addColorStop(0, '#fecdd3'); // light pink
+        gradient.addColorStop(0.5, '#e11d48'); // rose red
+        gradient.addColorStop(1, '#881337'); // dark rose
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.8)'; // Orange outline for the bob
+        ctx.stroke();
+
+        // Draw pivot pin
+        ctx.beginPath();
+        ctx.arc(originX, originY, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#475569';
+        ctx.stroke();
+    }
+
+    // Initial draw
+    drawPendulum(ctxAnim, 0, canvasSimple.width, canvasSimple.height);
 
     // --- MQTT Logic ---
     let mqttClient = null;
@@ -123,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logContainer = document.getElementById('mqtt-log-container');
 
     // Auto-generate client ID
-    document.getElementById('mqtt-client-id').value = 'lab_client_' + Math.random().toString(16).substr(2, 8);
+    const generatedClientId = 'lab_client_' + Math.random().toString(16).substr(2, 8);
 
     function addLog(message, type = 'message') {
         const entry = document.createElement('div');
@@ -166,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectBtn.addEventListener('click', () => {
         const host = document.getElementById('mqtt-host').value || 'localhost';
-        const port = document.getElementById('mqtt-port').value || 9001;
-        const clientId = document.getElementById('mqtt-client-id').value;
+        const port = (host.includes('localhost') || host.match(/^[0-9.]+$/)) ? 9001 : 443;
+        const clientId = generatedClientId;
         const username = document.getElementById('mqtt-user').value;
         const password = document.getElementById('mqtt-pass').value;
 
@@ -197,7 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 addLog('Connecté au broker MQTT avec succès.', 'success');
                 
                 // Subscribe to topics
-                const topics = ['pendule/simple/state', 'pendule/couple/state'];
+                const topics = [
+                    'FABLAB_21_22/Unity/meta/pendule/out/',
+                    'FABLAB_21_22/Unity/meta/pend_coupl/out/'
+                ];
                 mqttClient.subscribe(topics, (err) => {
                     if (!err) {
                         addLog(`Abonné aux topics : ${topics.join(', ')}`, 'system');
@@ -254,15 +362,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let startTimeCouple = null;
 
     function handleIncomingData(topic, data) {
-        // Expected JSON format: { "angle": 45.2, "time": 1.23 } 
-        // or { "angle1": 30.1, "angle2": -15.4, "time": 1.23 }
-        // If time is not provided, use local relative time.
-        
         let relativeTime;
 
-        if (topic === 'pendule/simple/state') {
+        if (data.id === 'pendule_simple_1') {
             if (startTimeSimple === null) startTimeSimple = Date.now();
-            relativeTime = data.time !== undefined ? data.time : (Date.now() - startTimeSimple) / 1000;
+            relativeTime = data.temps !== undefined ? data.temps : (Date.now() - startTimeSimple) / 1000;
             
             if (data.angle !== undefined) {
                 const dataset = chartSimple.data.datasets[0];
@@ -271,27 +375,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (dataset.data.length > MAX_DATA_POINTS) {
                     dataset.data.shift();
                 }
-                chartSimple.update('none'); // Update without animation
+                chartSimple.update('none');
+                
+                // Animate 2D Pendulum
+                drawPendulum(ctxAnim, data.angle, canvasSimple.width, canvasSimple.height);
             }
         } 
-        else if (topic === 'pendule/couple/state') {
+        else if (data.id === 'pendules_couples') {
             if (startTimeCouple === null) startTimeCouple = Date.now();
-            relativeTime = data.time !== undefined ? data.time : (Date.now() - startTimeCouple) / 1000;
+            relativeTime = data.temps !== undefined ? data.temps : (Date.now() - startTimeCouple) / 1000;
             
             let updated = false;
-            if (data.angle1 !== undefined) {
+            if (data.ang1 !== undefined) {
                 const dataset = chartCouple.data.datasets[0];
-                dataset.data.push({ x: relativeTime, y: data.angle1 });
+                dataset.data.push({ x: relativeTime, y: data.ang1 });
                 if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
                 updated = true;
             }
-            if (data.angle2 !== undefined) {
+            if (data.ang2 !== undefined) {
                 const dataset = chartCouple.data.datasets[1];
-                dataset.data.push({ x: relativeTime, y: data.angle2 });
+                dataset.data.push({ x: relativeTime, y: data.ang2 });
                 if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
                 updated = true;
             }
-            
             if (updated) chartCouple.update('none');
         }
     }
@@ -306,15 +412,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const payload = {
-            cmd: "init",
-            angle_init: parseFloat(document.getElementById('simple-angle').value),
-            vitesse_init: parseFloat(document.getElementById('simple-vitesse').value),
-            frottement: parseFloat(document.getElementById('simple-frottement').value),
-            masse: parseFloat(document.getElementById('simple-masse').value),
+            id: "pendule_simple_1",
+            ang_init: parseFloat(document.getElementById('simple-angle').value),
+            alpha: parseFloat(document.getElementById('simple-frottement').value),
+            m: parseFloat(document.getElementById('simple-masse').value),
             longueur: parseFloat(document.getElementById('simple-longueur').value)
         };
 
-        const topic = 'pendule/simple/commande';
+        const topic = 'FABLAB_21_22/Unity/meta/pendule/in/';
         mqttClient.publish(topic, JSON.stringify(payload));
         addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
         
@@ -333,15 +438,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const payload = {
-            cmd: "init",
-            angle1_init: parseFloat(document.getElementById('couple-angle1').value),
-            angle2_init: parseFloat(document.getElementById('couple-angle2').value),
-            frottement: parseFloat(document.getElementById('couple-frottement').value),
-            k: parseFloat(document.getElementById('couple-k').value),
-            distance: parseFloat(document.getElementById('couple-distance').value)
+            id: "pendules_couples",
+            ang_init1: parseFloat(document.getElementById('couple-angle1').value),
+            ang_init2: parseFloat(document.getElementById('couple-angle2').value),
+            alpha1: parseFloat(document.getElementById('couple-alpha1').value),
+            alpha2: parseFloat(document.getElementById('couple-alpha2').value),
+            Kc: parseFloat(document.getElementById('couple-k').value)
         };
 
-        const topic = 'pendule/couple/commande';
+        const topic = 'FABLAB_21_22/Unity/meta/pend_coupl/in/';
         mqttClient.publish(topic, JSON.stringify(payload));
         addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
         
