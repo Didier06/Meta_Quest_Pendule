@@ -161,7 +161,17 @@ To perfectly simulate the coupled normal modes without phase drift over long per
 
 ---
 
-## 6. Web Dashboard
+## 6. Scene Switching in VR
+
+To allow users to switch seamlessly between the Simple Pendulum and Coupled Pendulums scenes without modifying existing physics logic:
+- A `SceneSwitcher.cs` script has been added to `Assets/scripts`.
+- **VR Control:** Pressing the **B or Y button** (`OVRInput.Button.Two`) on the Meta Quest controllers will instantly toggle between `Pendule_simple` and `Pendules_couples`.
+- **Editor Control:** Pressing the **Spacebar** will toggle scenes during Editor testing.
+- **Setup:** Both scenes must be added to the Unity **Build Settings** (`Scenes In Build`) for this to work in the compiled `.apk`.
+
+---
+
+## 7. Web Dashboard
 
 This project includes a modern, scientific web-based dashboard located in the `site-web/` directory. The dashboard allows users to visualize real-time pendulum telemetry (both simple and coupled) and send configuration commands directly via MQTT. 
 
@@ -172,6 +182,6 @@ Features include:
 
 ---
 
-## 7. Overview
+## 8. Overview
 
 ![Meta Quest Pendule](Assets/images/meta_pendule.png)
