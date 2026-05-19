@@ -25,7 +25,7 @@ public class SceneSwitcher : MonoBehaviour
         
         if (currentScene == "Pendule_simple")
         {
-            SceneManager.LoadScene("Pendules_couples");
+            SceneManager.LoadScene("Pendule_couples");
         }
         else
         {
