@@ -13,10 +13,11 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="chart.js"></script>
+    <script src="mqtt.min.js"></script>
 </head>
 <body>
     <header>
@@ -44,12 +45,18 @@
         <section id="tab-simple" class="tab-content active">
             <div class="dashboard-grid">
                 <div class="panel">
-                    <h2 class="panel-header" style="justify-content: space-between;">
+                    <h2 class="panel-header" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <span>Visualisation en Temps Réel</span>
-                        <button id="export-simple" class="btn" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem; margin-top: 0;" title="Télécharger en CSV">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            CSV
-                        </button>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-left: auto;">
+                            <label style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="toggle-anim" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-color);">
+                                Afficher l'animation
+                            </label>
+                            <button id="export-simple" class="btn" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem; margin-top: 0;" title="Télécharger en CSV">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                CSV
+                            </button>
+                        </div>
                     </h2>
                     <div class="visualisation-wrapper">
                         <div class="chart-container">
@@ -76,10 +83,6 @@
                         <div class="form-group">
                             <label for="simple-masse">Masse (kg)</label>
                             <input type="number" id="simple-masse" step="0.1" value="1.0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="simple-longueur">Longueur (m)</label>
-                            <input type="number" id="simple-longueur" step="0.1" value="1.0" required>
                         </div>
                         <button type="submit" class="btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>

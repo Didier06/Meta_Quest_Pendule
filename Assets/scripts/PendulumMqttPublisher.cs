@@ -8,7 +8,7 @@ public class PendulumMqttPublisher : MonoBehaviour
 
     [Header("Paramètres du Pendule")]
     [Tooltip("Nombre de messages envoyés par seconde")]
-    public float messagesParSeconde = 10f;
+    public float messagesParSeconde = 20f;
     [Tooltip("Coche cette case pour voir l'angle dans la console (désactive-la une fois que ça marche pour ne pas spammer)")]
     public bool afficherDansConsole = true;
 
@@ -61,7 +61,7 @@ public class PendulumMqttPublisher : MonoBehaviour
 
             // Construire le message JSON
             // Utilise la culture invariante (Replace) pour garantir un point au lieu d'une virgule
-            string messageJson = $"{{\"id\":\"{nomPendule}\", \"angle\":{angle.ToString("F1").Replace(",", ".")}, \"temps\":{tempsEcoule.ToString("F1").Replace(",", ".")}}}";
+            string messageJson = $"{{\"id\":\"{nomPendule}\", \"angle\":{angle.ToString("F3").Replace(",", ".")}, \"temps\":{tempsEcoule.ToString("F3").Replace(",", ".")}}}";
 
             // Envoyer le message
             mqttManager.PublishCustom(publishTopic, messageJson);
@@ -77,6 +77,10 @@ public class PendulumMqttPublisher : MonoBehaviour
     // Fonction appelée automatiquement par MqttManager lorsqu'un message JSON contenant ang_init, alpha ou m est reçu
     public void OnMqttReset(MqttManager.ObjectTransformData data)
     {
+        // Reset tempsEcoule et timer immédiatement
+        tempsEcoule = 0f;
+        timer = 0f;
+
         // Mémorisation des valeurs si elles sont fournies (différentes de -999)
         if (data.ang_init != -999f) lastAngInit = data.ang_init;
         if (data.alpha != -999f) lastAlpha = data.alpha;
@@ -138,6 +142,7 @@ public class PendulumMqttPublisher : MonoBehaviour
 
             // On relâche le pendule
             rb.isKinematic = false;
+            rb.WakeUp();
         }
 
         // Appliquer le frottement visqueux (Damper)
@@ -156,6 +161,11 @@ public class PendulumMqttPublisher : MonoBehaviour
         {
             Debug.LogError("ATTENTION : La variable 'Pivot Joint' n'est pas assignée !");
         }
+
+        // Attendre que le moteur physique effectue la première mise à jour (FixedUpdate)
+        // après la libération du Rigidbody kinematic, pour s'assurer que le pendule a commencé
+        // à bouger avant de démarrer l'acquisition des données à t=0.
+        yield return new WaitForFixedUpdate();
 
         tempsEcoule = 0f;
         timer = 0f;

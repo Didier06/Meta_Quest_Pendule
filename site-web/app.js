@@ -119,13 +119,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 label: 'Angle θ',
                 data: [],
                 borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true
+                backgroundColor: 'transparent',
+                fill: false
             }]
         },
         options: commonChartOptions,
         plugins: [crosshairPlugin]
     });
+
+    // --- Toggle Animation Logic ---
+    const toggleAnimCheckbox = document.getElementById('toggle-anim');
+    const animContainer = document.querySelector('.pendulum-canvas-container');
+
+    if (toggleAnimCheckbox && animContainer) {
+        const updateAnimVisibility = () => {
+            if (toggleAnimCheckbox.checked) {
+                animContainer.style.display = 'flex';
+            } else {
+                animContainer.style.display = 'none';
+            }
+            chartSimple.resize();
+        };
+
+        toggleAnimCheckbox.addEventListener('change', updateAnimVisibility);
+        // Initial sync in case browser remembered state
+        updateAnimVisibility();
+    }
 
     // Initialize Coupled Pendulum Chart
     const ctxCouple = document.getElementById('chart-couple').getContext('2d');
@@ -161,10 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Pivot point
         const originX = canvasWidth / 2;
         const originY = 50;
-        const length = 200; // Visual length
         
-        // Calculate bob position
-        const angleRad = -angleDeg * Math.PI / 180; // Negative to match visual rotation usually
+        // Dynamic visual length: default is 200px, scaled by simple-longueur input value
+        const lengthInput = document.getElementById('simple-longueur');
+        const lengthScale = lengthInput ? parseFloat(lengthInput.value) : 1.0;
+        const length = 200 * lengthScale; // Visual length
+        
+        // Calculate bob position (removed minus sign to correct orientation)
+        const angleRad = angleDeg * Math.PI / 180;
         const bobX = originX + length * Math.sin(angleRad);
         const bobY = originY + length * Math.cos(angleRad);
         
@@ -357,48 +380,94 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Data Processing ---
-    const MAX_DATA_POINTS = 300; // Limit points to avoid performance issues
+    const MAX_DATA_POINTS = 5000; // Limit points to avoid performance issues
     let startTimeSimple = null;
     let startTimeCouple = null;
+    let lastReceivedTimeSimple = -1;
+    let lastReceivedTimeCouple = -1;
 
     function handleIncomingData(topic, data) {
-        let relativeTime;
+        try {
+            let relativeTime;
 
-        if (data.id === 'pendule_simple_1') {
-            if (startTimeSimple === null) startTimeSimple = Date.now();
-            relativeTime = data.temps !== undefined ? data.temps : (Date.now() - startTimeSimple) / 1000;
-            
-            if (data.angle !== undefined) {
-                const dataset = chartSimple.data.datasets[0];
-                dataset.data.push({ x: relativeTime, y: data.angle });
+            if (data.id === 'pendule_simple_1') {
+                if (startTimeSimple === null) startTimeSimple = Date.now();
                 
-                if (dataset.data.length > MAX_DATA_POINTS) {
-                    dataset.data.shift();
+                if (data.temps !== undefined) {
+                    // Reset detected: new simulation started
+                    if (lastReceivedTimeSimple !== -1 && data.temps < lastReceivedTimeSimple) {
+                        chartSimple.data.datasets[0].data = [];
+                        chartSimple.update();
+                    }
+                    
+                    // Frozen time: repositioning phase
+                    if (data.temps === lastReceivedTimeSimple) {
+                        if (data.angle !== undefined) {
+                            drawPendulum(ctxAnim, data.angle, canvasSimple.width, canvasSimple.height);
+                        }
+                        return;
+                    }
+                    
+                    relativeTime = data.temps;
+                    lastReceivedTimeSimple = data.temps;
+                } else {
+                    relativeTime = (Date.now() - startTimeSimple) / 1000;
                 }
-                chartSimple.update('none');
                 
-                // Animate 2D Pendulum
-                drawPendulum(ctxAnim, data.angle, canvasSimple.width, canvasSimple.height);
+                if (data.angle !== undefined) {
+                    const dataset = chartSimple.data.datasets[0];
+                    dataset.data.push({ x: relativeTime, y: data.angle });
+                    
+                    if (dataset.data.length > MAX_DATA_POINTS) {
+                        dataset.data.shift();
+                    }
+                    
+                    chartSimple.update('none');
+                    
+                    // Animate 2D Pendulum
+                    drawPendulum(ctxAnim, data.angle, canvasSimple.width, canvasSimple.height);
+                }
+            } 
+            else if (data.id === 'pendules_couples') {
+                if (startTimeCouple === null) startTimeCouple = Date.now();
+                
+                if (data.temps !== undefined) {
+                    // Reset detected: new simulation started
+                    if (lastReceivedTimeCouple !== -1 && data.temps < lastReceivedTimeCouple) {
+                        chartCouple.data.datasets[0].data = [];
+                        chartCouple.data.datasets[1].data = [];
+                        chartCouple.update();
+                    }
+                    
+                    // Frozen time: repositioning phase
+                    if (data.temps === lastReceivedTimeCouple) {
+                        return;
+                    }
+                    
+                    relativeTime = data.temps;
+                    lastReceivedTimeCouple = data.temps;
+                } else {
+                    relativeTime = (Date.now() - startTimeCouple) / 1000;
+                }
+                
+                let updated = false;
+                
+                if (data.ang1 !== undefined) {
+                    const dataset = chartCouple.data.datasets[0];
+                    dataset.data.push({ x: relativeTime, y: data.ang1 });
+                    if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
+                    updated = true;
+                }
+                if (data.ang2 !== undefined) {
+                    const dataset = chartCouple.data.datasets[1];
+                    dataset.data.push({ x: relativeTime, y: data.ang2 });
+                    if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
+                    updated = true;
+                }
+                if (updated) chartCouple.update('none');
             }
-        } 
-        else if (data.id === 'pendules_couples') {
-            if (startTimeCouple === null) startTimeCouple = Date.now();
-            relativeTime = data.temps !== undefined ? data.temps : (Date.now() - startTimeCouple) / 1000;
-            
-            let updated = false;
-            if (data.ang1 !== undefined) {
-                const dataset = chartCouple.data.datasets[0];
-                dataset.data.push({ x: relativeTime, y: data.ang1 });
-                if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
-                updated = true;
-            }
-            if (data.ang2 !== undefined) {
-                const dataset = chartCouple.data.datasets[1];
-                dataset.data.push({ x: relativeTime, y: data.ang2 });
-                if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
-                updated = true;
-            }
-            if (updated) chartCouple.update('none');
+        } catch (err) {
+            console.error("Erreur lors du traitement des données entrantes :", err);
         }
     }
 
@@ -411,22 +480,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const payload = {
-            id: "pendule_simple_1",
-            ang_init: parseFloat(document.getElementById('simple-angle').value),
-            alpha: parseFloat(document.getElementById('simple-frottement').value),
-            m: parseFloat(document.getElementById('simple-masse').value),
-            longueur: parseFloat(document.getElementById('simple-longueur').value)
-        };
+        try {
+            const payload = {
+                id: "pendule_simple_1",
+                ang_init: parseFloat(document.getElementById('simple-angle').value),
+                alpha: parseFloat(document.getElementById('simple-frottement').value),
+                m: parseFloat(document.getElementById('simple-masse').value)
+            };
 
-        const topic = 'FABLAB_21_22/Unity/meta/pendule/in/';
-        mqttClient.publish(topic, JSON.stringify(payload));
-        addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
-        
-        // Reset chart
-        chartSimple.data.datasets[0].data = [];
-        chartSimple.update();
-        startTimeSimple = null; // Reset relative time
+            const topic = 'FABLAB_21_22/Unity/meta/pendule/in/';
+            mqttClient.publish(topic, JSON.stringify(payload));
+            addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
+            
+            // Reset chart & parameters
+            chartSimple.data.datasets[0].data = [];
+            chartSimple.update();
+            startTimeSimple = null; // Reset relative time
+            lastReceivedTimeSimple = -1; // Reset tracking variable
+        } catch (err) {
+            console.error("Erreur lors de la soumission simple :", err);
+            addLog(`Erreur d'envoi : ${err.message}`, 'error');
+        }
     });
 
     document.getElementById('form-couple').addEventListener('submit', (e) => {
@@ -437,24 +511,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const payload = {
-            id: "pendules_couples",
-            ang_init1: parseFloat(document.getElementById('couple-angle1').value),
-            ang_init2: parseFloat(document.getElementById('couple-angle2').value),
-            alpha1: parseFloat(document.getElementById('couple-alpha1').value),
-            alpha2: parseFloat(document.getElementById('couple-alpha2').value),
-            Kc: parseFloat(document.getElementById('couple-k').value)
-        };
+        try {
+            const payload = {
+                id: "pendules_couples",
+                ang_init1: parseFloat(document.getElementById('couple-angle1').value),
+                ang_init2: parseFloat(document.getElementById('couple-angle2').value),
+                alpha1: parseFloat(document.getElementById('couple-alpha1').value),
+                alpha2: parseFloat(document.getElementById('couple-alpha2').value),
+                Kc: parseFloat(document.getElementById('couple-k').value)
+            };
 
-        const topic = 'FABLAB_21_22/Unity/meta/pend_coupl/in/';
-        mqttClient.publish(topic, JSON.stringify(payload));
-        addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
-        
-        // Reset chart
-        chartCouple.data.datasets[0].data = [];
-        chartCouple.data.datasets[1].data = [];
-        chartCouple.update();
-        startTimeCouple = null; // Reset relative time
+            const topic = 'FABLAB_21_22/Unity/meta/pend_coupl/in/';
+            mqttClient.publish(topic, JSON.stringify(payload));
+            addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
+            
+            // Reset chart & parameters
+            chartCouple.data.datasets[0].data = [];
+            chartCouple.data.datasets[1].data = [];
+            chartCouple.update();
+            startTimeCouple = null; // Reset relative time
+            lastReceivedTimeCouple = -1; // Reset tracking variable
+        } catch (err) {
+            console.error("Erreur lors de la soumission couplée :", err);
+            addLog(`Erreur d'envoi : ${err.message}`, 'error');
+        }
     });
 
     // --- CSV Export Logic ---

@@ -52,7 +52,7 @@ MonoBehaviour:
     - line: '|   useOnDemandResources: 0'
     - line: '|   accelerometerFrequency: 60'
     - line: '|   companyName: FablabUniCA'
-    - line: '|   productName: Pendule_simple'
+    - line: '|   productName: Pendules'
     - line: '|   defaultCursor: {instanceID: 0}'
     - line: '|   cursorHotspot: {x: 0, y: 0}'
     - line: '|   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b:
@@ -187,6 +187,10 @@ MonoBehaviour:
     - line: '|   preloadedAssets:'
     - line: '|   - {fileID: 11400000, guid: d31579fe5440fc544bdd3cde87f705b9, type:
         2}'
+    - line: '|   - {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b,
+        type: 3}'
+    - line: '|   - {fileID: 11400000, guid: 85f320fff787a0a45a7a7873daf564ea, type:
+        2}'
     - line: '|   metroInputSource: 0'
     - line: '|   wsaTransparentSwapchain: 0'
     - line: '|   m_HolographicPauseOnTrackingLoss: 1'
@@ -208,7 +212,7 @@ MonoBehaviour:
     - line: '|   androidMaxAspectRatio: 2.4'
     - line: '|   androidMinAspectRatio: 1'
     - line: '|   applicationIdentifier:'
-    - line: '|     Android: com.FalblabUniCA.Meta_Quest_Test1'
+    - line: '|     Android: com.FablabUniCA.Pendules'
     - line: '|     Standalone: com.Unity-Technologies.com.unity.template.urp-blank'
     - line: '|     iPhone: com.Unity-Technologies.com.unity.template.urp-blank'
     - line: '|   buildNumber:'
@@ -1038,7 +1042,7 @@ MonoBehaviour:
         m_ExportAsGoogleAndroidProject: 0
         m_DebugSymbolLevel: 1
         m_DebugSymbolFormat: 5
-        m_CurrentDeploymentTargetId: __builtin__target_default
+        m_CurrentDeploymentTargetId: 2G0YC1ZG0905J3
         m_BuildType: 2
         m_LinkTimeOptimization: 0
         m_BuildAppBundle: 0

@@ -13,7 +13,7 @@ public class PendulesCouples : MonoBehaviour
     [Header("Configuration MQTT")]
     public MqttManager mqttManager;
     public string publishTopic = "FABLAB_21_22/Unity/meta/pendule/out/";
-    public float messagesParSeconde = 10f;
+    public float messagesParSeconde = 20f;
     public bool afficherDansConsole = true;
 
     [Header("Reset / Remontée")]
@@ -56,7 +56,7 @@ public class PendulesCouples : MonoBehaviour
             string parentId = transform.root.name;
 
             // Un seul message JSON contenant ang1 et ang2
-            string messageJson = $"{{\"id\":\"{parentId}\", \"ang1\":{theta1_deg.ToString("F1").Replace(",", ".")}, \"ang2\":{theta2_deg.ToString("F1").Replace(",", ".")}, \"temps\":{tempsEcoule.ToString("F1").Replace(",", ".")}}}";
+            string messageJson = $"{{\"id\":\"{parentId}\", \"ang1\":{theta1_deg.ToString("F3").Replace(",", ".")}, \"ang2\":{theta2_deg.ToString("F3").Replace(",", ".")}, \"temps\":{tempsEcoule.ToString("F3").Replace(",", ".")}}}";
 
             mqttManager.PublishCustom(publishTopic, messageJson);
 
@@ -119,6 +119,10 @@ public class PendulesCouples : MonoBehaviour
     {
         Debug.Log($"[Pendules Couples] REÇU ORDRE DE RESET ! ang1: {data.ang_init1}, ang2: {data.ang_init2}, Kc: {data.Kc}");
         
+        // Reset tempsEcoule et timer immédiatement
+        tempsEcoule = 0f;
+        timer = 0f;
+
         if (data.ang_init1 != -999f) lastAngInit1 = data.ang_init1;
         if (data.ang_init2 != -999f) lastAngInit2 = data.ang_init2;
         if (data.alpha1 != -999f) alpha1 = data.alpha1;
@@ -181,6 +185,13 @@ public class PendulesCouples : MonoBehaviour
 
         pendule1.isKinematic = false;
         pendule2.isKinematic = false;
+        pendule1.WakeUp();
+        pendule2.WakeUp();
+
+        // Attendre que le moteur physique effectue la première mise à jour (FixedUpdate)
+        // après la libération des Rigidbodies kinematic, pour s'assurer que les pendules ont commencé
+        // à bouger avant de démarrer l'acquisition des données à t=0.
+        yield return new WaitForFixedUpdate();
 
         tempsEcoule = 0f;
         timer = 0f;
