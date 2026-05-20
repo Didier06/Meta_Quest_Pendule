@@ -6,20 +6,42 @@ public class SceneSwitcher : MonoBehaviour
 {
     void Update()
     {
-        // Toggle scene using the 'B' or 'Y' button on the Meta Quest controllers (Button.Two)
+        // Raccourci 1 : Manettes Quest (Bouton B ou Y) pour le développement/test rapide
         if (OVRInput.GetDown(OVRInput.Button.Two))
         {
-            SwitchScene();
+            ToggleScene();
         }
         
-        // Also allow keyboard testing in the Unity Editor (Spacebar) using the New Input System
+        // Raccourci 2 : Clavier dans l'Éditeur (Touche Espace) pour les tests rapides PC
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            SwitchScene();
+            ToggleScene();
         }
     }
 
-    void SwitchScene()
+    /// <summary>
+    /// Méthode publique utilisable par la Méthode A (Boutons UI Virtuels).
+    /// Charge directement la scène simple.
+    /// </summary>
+    public void LoadPenduleSimple()
+    {
+        SceneManager.LoadScene("Pendule_simple");
+    }
+
+    /// <summary>
+    /// Méthode publique utilisable par la Méthode A (Boutons UI Virtuels).
+    /// Charge directement la scène de pendules couplés.
+    /// </summary>
+    public void LoadPenduleCouples()
+    {
+        SceneManager.LoadScene("Pendule_couples");
+    }
+
+    /// <summary>
+    /// Méthode publique utilisable par la Méthode A (Boutons UI Virtuels) ou par les raccourcis.
+    /// Bascule automatiquement sur l'autre scène.
+    /// </summary>
+    public void ToggleScene()
     {
         string currentScene = SceneManager.GetActiveScene().name;
         
@@ -29,7 +51,6 @@ public class SceneSwitcher : MonoBehaviour
         }
         else
         {
-            // By default, fallback to Pendule_simple
             SceneManager.LoadScene("Pendule_simple");
         }
     }
