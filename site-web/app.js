@@ -518,6 +518,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ang_init2: parseFloat(document.getElementById('couple-angle2').value),
                 alpha1: parseFloat(document.getElementById('couple-alpha1').value),
                 alpha2: parseFloat(document.getElementById('couple-alpha2').value),
+                m1: parseFloat(document.getElementById('couple-masse1').value),
+                m2: parseFloat(document.getElementById('couple-masse2').value),
                 Kc: parseFloat(document.getElementById('couple-k').value)
             };
 

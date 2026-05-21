@@ -516,9 +516,9 @@ MonoBehaviour:
     - line: '|       m_Kind: 0'
     - line: '|       m_SubKind: '
     - line: '|     - m_Textures:'
-    - line: '|       - {fileID: 2800000, guid: f05f4d3159d04aa4ba8dd625ef6cc297,
+    - line: '|       - {fileID: 2800000, guid: a866da3785b01a745bda8b0d1e121f2a,
         type: 3}'
-    - line: '|       - {fileID: 2800000, guid: f05f4d3159d04aa4ba8dd625ef6cc297,
+    - line: '|       - {fileID: 2800000, guid: a866da3785b01a745bda8b0d1e121f2a,
         type: 3}'
     - line: '|       m_Width: 432'
     - line: '|       m_Height: 432'

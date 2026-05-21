@@ -163,11 +163,17 @@ To perfectly simulate the coupled normal modes without phase drift over long per
 
 ## 6. Scene Switching in VR
 
-To allow users to switch seamlessly between the Simple Pendulum and Coupled Pendulums scenes without modifying existing physics logic:
+To allow users to switch seamlessly between the Simple Pendulum and Coupled Pendulums scenes:
 - A `SceneSwitcher.cs` script has been added to `Assets/scripts`.
-- **VR Control:** Pressing the **B or Y button** (`OVRInput.Button.Two`) on the Meta Quest controllers will instantly toggle between `Pendule_simple` and `Pendules_couples`.
-- **Editor Control:** Pressing the **Spacebar** will toggle scenes during Editor testing.
-- **Setup:** Both scenes must be added to the Unity **Build Settings** (`Scenes In Build`) for this to work in the compiled `.apk`.
+- **Virtual 3D UI Buttons (Method A):** 
+  - Standard Unity World-Space Canvas buttons are set up in both scenes, hooked up to the public `LoadPenduleSimple()`, `LoadPenduleCouples()`, or `ToggleScene()` methods.
+  - **With Controllers:** Point your controller laser ray at the button and press the **Index Trigger** or **A button** to click.
+  - **With Hand Tracking (Mains):** Point your hand's selection ray at the button and perform a **pinch gesture** (thumb and index finger together) to click.
+- **Controller/Keyboard Shortcuts (Method B):**
+  - **Quest 3 Controllers:** Pressing the **B button** (right controller) or **Y button** (left controller) instantly toggles between `Pendule_simple` and `Pendule_couples` without needing to aim.
+  - **PC Editor:** Pressing the **Spacebar** toggles scenes during testing.
+- **Conflict Prevention:** The Meta XR Immersive Debugger (which normally uses Button B/Y as a toggle) has been completely disabled in `Assets/Resources/ImmersiveDebuggerSettings.asset` to ensure clean B/Y operation without debug panels popping up.
+- **Setup:** Both scenes (`Pendule_simple` and `Pendule_couples`) must be added to the Unity **Build Settings** (`Scenes In Build`) for this to work in the compiled `.apk`.
 
 ---
 
