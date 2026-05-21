@@ -80,11 +80,31 @@ public class PendulesCouples : MonoBehaviour
             }
         }
 
+        // Diagnostic de symétrie physique pour identifier la cause de la dérive de phase
+        Vector3 pivot1, axis1;
+        GetPivotAndAxis(pendule1, out pivot1, out axis1);
+        Vector3 pivot2, axis2;
+        GetPivotAndAxis(pendule2, out pivot2, out axis2);
+        float dist1 = Vector3.Distance(pivot1, pendule1.worldCenterOfMass);
+        float dist2 = Vector3.Distance(pivot2, pendule2.worldCenterOfMass);
+        Debug.LogWarning($"[Diagnostic Physique Pendules]\n" +
+                         $"* Pendule 1: Masse = {pendule1.mass:F3} kg | Inertie = {pendule1.inertiaTensor} | Distance Pivot-CdM = {dist1:F5} m\n" +
+                         $"* Pendule 2: Masse = {pendule2.mass:F3} kg | Inertie = {pendule2.inertiaTensor} | Distance Pivot-CdM = {dist2:F5} m\n" +
+                         $"* Écart de longueur (Pivot-CdM) = {Mathf.Abs(dist1 - dist2):F5} m");
+
         // 2. Augmenter la précision du solveur physique pour les calculs de ressorts
         pendule1.solverIterations = 30;
         pendule2.solverIterations = 30;
         
-        // 3. Empêcher le moteur de brider la vitesse angulaire (défaut = 7 rad/s)
+        // 3. Augmenter la précision du solveur de vitesse pour les frottements/dampers et joints
+        pendule1.solverVelocityIterations = 30;
+        pendule2.solverVelocityIterations = 30;
+
+        // 4. Augmenter la fréquence de rafraîchissement physique (100 Hz au lieu de 50 Hz par défaut)
+        // pour réduire l'accumulation d'erreurs d'intégration numérique.
+        Time.fixedDeltaTime = 0.01f;
+
+        // 5. Empêcher le moteur de brider la vitesse angulaire (défaut = 7 rad/s)
         pendule1.maxAngularVelocity = 50f;
         pendule2.maxAngularVelocity = 50f;
     }
@@ -188,6 +208,10 @@ public class PendulesCouples : MonoBehaviour
         pendule1.WakeUp();
         pendule2.WakeUp();
 
+        // Ré-appliquer l'amortissement après avoir relâché les pendules (isKinematic = false)
+        AppliquerFrottementHinge(pendule1, alpha1);
+        AppliquerFrottementHinge(pendule2, alpha2);
+
         // Attendre que le moteur physique effectue la première mise à jour (FixedUpdate)
         // après la libération des Rigidbodies kinematic, pour s'assurer que les pendules ont commencé
         // à bouger avant de démarrer l'acquisition des données à t=0.
@@ -201,12 +225,33 @@ public class PendulesCouples : MonoBehaviour
     // Applique physiquement la valeur alpha au ressort (Damper) du HingeJoint
     void AppliquerFrottementHinge(Rigidbody rb, float alpha)
     {
+        if (rb == null) return;
+
         HingeJoint hinge = rb.GetComponent<HingeJoint>();
+        
+        // Recherche locale robuste en premier
         if (hinge == null)
+        {
+            foreach (HingeJoint h in GetComponentsInChildren<HingeJoint>())
+            {
+                if (h.connectedBody == rb || h.gameObject == rb.gameObject)
+                {
+                    hinge = h;
+                    break;
+                }
+            }
+        }
+
+        // Recherche globale en fallback si non trouvé localement
+        if (hinge == null && rb.transform.root != null)
         {
             foreach (HingeJoint h in rb.transform.root.GetComponentsInChildren<HingeJoint>())
             {
-                if (h.connectedBody == rb) { hinge = h; break; }
+                if (h.connectedBody == rb)
+                {
+                    hinge = h;
+                    break;
+                }
             }
         }
 
@@ -218,6 +263,11 @@ public class PendulesCouples : MonoBehaviour
             spring.targetPosition = 0f;
             spring.damper = alpha; // Amortissement
             hinge.spring = spring;
+            Debug.Log($"[Pendules Couples] Amortissement appliqué sur '{rb.name}' : Damper = {alpha}");
+        }
+        else
+        {
+            Debug.LogError($"[Pendules Couples] ERREUR : Impossible de trouver le HingeJoint associé au Rigidbody '{rb.name}' !");
         }
     }
 

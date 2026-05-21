@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const yAxis = chart.scales.y;
                 const xAxis = chart.scales.x;
                 const ctx = chart.ctx;
-                
+
                 ctx.save();
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 grid: { color: 'rgba(0, 0, 0, 0.05)' },
                 ticks: {
                     maxTicksLimit: 10,
-                    callback: function(value) { return value.toFixed(1); }
+                    callback: function (value) { return value.toFixed(1); }
                 }
             },
             y: {
@@ -176,21 +176,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawPendulum(ctx, angleDeg, canvasWidth, canvasHeight) {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        
+
         // Pivot point
         const originX = canvasWidth / 2;
         const originY = 50;
-        
+
         // Dynamic visual length: default is 200px, scaled by simple-longueur input value
         const lengthInput = document.getElementById('simple-longueur');
         const lengthScale = lengthInput ? parseFloat(lengthInput.value) : 1.0;
         const length = 200 * lengthScale; // Visual length
-        
+
         // Calculate bob position (removed minus sign to correct orientation)
         const angleRad = angleDeg * Math.PI / 180;
         const bobX = originX + length * Math.sin(angleRad);
         const bobY = originY + length * Math.cos(angleRad);
-        
+
         // Draw axis/support
         ctx.beginPath();
         ctx.moveTo(originX - 20, originY);
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gradient.addColorStop(0, '#fecdd3'); // light pink
         gradient.addColorStop(0.5, '#e11d48'); // rose red
         gradient.addColorStop(1, '#881337'); // dark rose
-        
+
         ctx.fillStyle = gradient;
         ctx.fill();
         ctx.lineWidth = 4;
@@ -256,14 +256,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function addLog(message, type = 'message') {
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
-        
+
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
-        
+
         entry.innerHTML = `<span class="time">[${timeStr}]</span>${message}`;
         logContainer.appendChild(entry);
         logContainer.scrollTop = logContainer.scrollHeight;
-        
+
         // Keep only last 100 logs
         if (logContainer.children.length > 100) {
             logContainer.removeChild(logContainer.firstChild);
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         globalStatusIndicator.className = 'status-indicator';
         globalStatusIndicator.classList.add(status);
         globalStatusText.textContent = text;
-        
+
         const badge = globalStatusIndicator.parentElement;
         if (status === 'connected') {
             badge.style.borderColor = 'var(--success-color)';
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mqttClient.on('connect', () => {
                 updateConnectionStatus('connected', 'Connecté');
                 addLog('Connecté au broker MQTT avec succès.', 'success');
-                
+
                 // Subscribe to topics
                 const topics = [
                     'FABLAB_21_22/Unity/meta/pendule/out/',
@@ -380,7 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Data Processing ---
-    const MAX_DATA_POINTS = 5000; // Limit points to avoid performance issues
     let startTimeSimple = null;
     let startTimeCouple = null;
     let lastReceivedTimeSimple = -1;
@@ -392,14 +391,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.id === 'pendule_simple_1') {
                 if (startTimeSimple === null) startTimeSimple = Date.now();
-                
+
                 if (data.temps !== undefined) {
                     // Reset detected: new simulation started
                     if (lastReceivedTimeSimple !== -1 && data.temps < lastReceivedTimeSimple) {
                         chartSimple.data.datasets[0].data = [];
                         chartSimple.update();
                     }
-                    
+
                     // Frozen time: repositioning phase
                     if (data.temps === lastReceivedTimeSimple) {
                         if (data.angle !== undefined) {
@@ -407,30 +406,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         return;
                     }
-                    
+
                     relativeTime = data.temps;
                     lastReceivedTimeSimple = data.temps;
                 } else {
                     relativeTime = (Date.now() - startTimeSimple) / 1000;
                 }
-                
+
                 if (data.angle !== undefined) {
                     const dataset = chartSimple.data.datasets[0];
                     dataset.data.push({ x: relativeTime, y: data.angle });
-                    
-                    if (dataset.data.length > MAX_DATA_POINTS) {
-                        dataset.data.shift();
-                    }
-                    
+
                     chartSimple.update('none');
-                    
+
                     // Animate 2D Pendulum
                     drawPendulum(ctxAnim, data.angle, canvasSimple.width, canvasSimple.height);
                 }
-            } 
+            }
             else if (data.id === 'pendules_couples') {
                 if (startTimeCouple === null) startTimeCouple = Date.now();
-                
+
                 if (data.temps !== undefined) {
                     // Reset detected: new simulation started
                     if (lastReceivedTimeCouple !== -1 && data.temps < lastReceivedTimeCouple) {
@@ -438,30 +433,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         chartCouple.data.datasets[1].data = [];
                         chartCouple.update();
                     }
-                    
+
                     // Frozen time: repositioning phase
                     if (data.temps === lastReceivedTimeCouple) {
                         return;
                     }
-                    
+
                     relativeTime = data.temps;
                     lastReceivedTimeCouple = data.temps;
                 } else {
                     relativeTime = (Date.now() - startTimeCouple) / 1000;
                 }
-                
+
                 let updated = false;
-                
+
                 if (data.ang1 !== undefined) {
                     const dataset = chartCouple.data.datasets[0];
                     dataset.data.push({ x: relativeTime, y: data.ang1 });
-                    if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
                     updated = true;
                 }
                 if (data.ang2 !== undefined) {
                     const dataset = chartCouple.data.datasets[1];
                     dataset.data.push({ x: relativeTime, y: data.ang2 });
-                    if (dataset.data.length > MAX_DATA_POINTS) dataset.data.shift();
                     updated = true;
                 }
                 if (updated) chartCouple.update('none');
@@ -474,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Forms Submissions ---
     document.getElementById('form-simple').addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         if (!mqttClient || !mqttClient.connected) {
             alert('Veuillez vous connecter au serveur MQTT avant d\'envoyer des commandes.');
             return;
@@ -491,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const topic = 'FABLAB_21_22/Unity/meta/pendule/in/';
             mqttClient.publish(topic, JSON.stringify(payload));
             addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
-            
+
             // Reset chart & parameters
             chartSimple.data.datasets[0].data = [];
             chartSimple.update();
@@ -505,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-couple').addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         if (!mqttClient || !mqttClient.connected) {
             alert('Veuillez vous connecter au serveur MQTT avant d\'envoyer des commandes.');
             return;
@@ -526,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const topic = 'FABLAB_21_22/Unity/meta/pend_coupl/in/';
             mqttClient.publish(topic, JSON.stringify(payload));
             addLog(`Commande envoyée sur <span class="topic">${topic}</span>`, 'system');
-            
+
             // Reset chart & parameters
             chartCouple.data.datasets[0].data = [];
             chartCouple.data.datasets[1].data = [];
@@ -545,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chartSimple.data.datasets[0].data.forEach(p => {
             csvContent += `${p.x},${p.y}\n`;
         });
-        
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -560,15 +553,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let csvContent = "Temps (s),Angle 1 (deg),Angle 2 (deg)\n";
         const data1 = chartCouple.data.datasets[0].data;
         const data2 = chartCouple.data.datasets[1].data;
-        
+
         // Use the length of data1, assuming they are synchronized
-        for(let i=0; i<data1.length; i++){
+        for (let i = 0; i < data1.length; i++) {
             let x = data1[i].x;
             let y1 = data1[i].y;
             let y2 = data2[i] ? data2[i].y : "";
             csvContent += `${x},${y1},${y2}\n`;
         }
-        
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
